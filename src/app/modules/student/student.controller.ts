@@ -1,51 +1,46 @@
-import { Request, Response } from 'express';
+import httpStatus from 'http-status';
 import { StudentServices } from './student.service';
+import sendResponse from '../../utils/sendResponse';
+import catchAsync from '../../utils/catchAsync';
 
-const createStudent = async (req: Request, res: Response) => {
-  try {
-    const { student } = req.body;
+const getStudents = catchAsync(async (req, res) => {
+  const result = await StudentServices.getAllStudents();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Students retrieved Successfully',
+    data: result,
+  });
+});
 
-    const result = await StudentServices.createStudentIntoDB(student);
-
-    res.status(200).json({
-      success: true,
-      message: 'Student Created Successfully',
-      data: result,
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const getStudents = async (req: Request, res: Response) => {
-  try {
-    const result = await StudentServices.getAllStudents();
-    res.status(200).json({
-      success: true,
-      message: 'Students retrieved Successfully',
-      data: result,
-    });
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-const findStudent = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const result = await StudentServices.findStudent(id);
-    res.status(200).json({
+const findSingleStudent = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await StudentServices.findStudent(id);
+  if (result) {
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
       success: true,
       message: 'Student retrieved by Id Successfully',
       data: result,
     });
-  } catch (err) {
-    console.log(err);
+  } else {
+    throw Error('Student not found');
   }
-};
+});
+
+const deleteSingleStudent = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await StudentServices.deleteStudent(id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Student Deleted Successfully',
+    data: result,
+  });
+});
 
 export const StudentController = {
-  createStudent,
   getStudents,
-  findStudent,
+  findSingleStudent,
+  deleteSingleStudent,
 };
